@@ -1,0 +1,19 @@
+package week5.Zombie;
+
+import java.util.Random;
+
+public class Zombie extends Unit {
+    public Zombie(String name, int pos) {
+        super(name, pos, 50);
+    }
+
+    public void move() {
+        Random random = new Random();
+        int move = random.nextInt(2) + 1;
+        if (move == 1) {
+            left();
+        } else {
+            right();
+        }
+    }
+}
