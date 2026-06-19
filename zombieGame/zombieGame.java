@@ -15,19 +15,29 @@ public class zombieGame extends JFrame{
         panel.requestFocusInWindow();
     }
 
-    class gamePanel extends JPanel implements KeyListener{
+    class gamePanel extends JPanel implements KeyListener, Runnable{
 
-        private final ImageIcon icon1 = new ImageIcon("zombieGame/images/hero01.png");
-        private final ImageIcon icon4 = new ImageIcon("zombieGame/images/hero04.png");
-        private final Image right = icon1.getImage();
-        private final Image left = icon4.getImage();
+        // private final ImageIcon icon1 = new ImageIcon("zombieGame/images/hero01.png");
+        // private final ImageIcon icon4 = new ImageIcon("zombieGame/images/hero04.png");
+        // private final Image right = icon1.getImage();
+        // private final Image left = icon4.getImage();
+
+        GraphicZombie zombie1 = new GraphicZombie(150, 171);
+        GraphicZombie zombie2 = new GraphicZombie(350, 171);
+
+        GraphicHero hero = new GraphicHero(0, 171);
 
         int x = 0;
         int y = 171;
-        int direction = 0; // 주인공 방향, 0=right, 1=left
+        boolean gameOver = false;
+        boolean playgame = true;
+
+        boolean heroDead1, heroDead2;
 
         public gamePanel() {
             this.addKeyListener(this);
+
+            new Thread(this).start();
         }
 
         @Override
@@ -38,35 +48,66 @@ public class zombieGame extends JFrame{
             g.setColor(Color.ORANGE);
             g.fillRect(0, 200, getWidth(), getHeight() );
             
-            if(direction == 0) {
-                g.drawImage(right, x, y, this);
-            } else {
-                g.drawImage(left, x, y, this);
+            zombie1.paint(g);
+            zombie2.paint(g);
+            hero.paint(g);
+
+            if (gameOver == true) {
+                g.drawString("목적지에 도착했습니다.", 200, 100);
+                playgame = false;
             }
 
+            if (heroDead1 || heroDead2) {
+                g.setColor(Color.red);
+                g.drawString("좀비에게 잡혔습니다.", 200, 150);
+                playgame = false;
+            }
         }
 
         @Override
         public void keyTyped(KeyEvent e) {
-            throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override
         public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                x += 5;
-                direction = 0;
+                hero.moveRight();
                 repaint();
             } else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-                x -= 5;
-                direction = 1;
+                hero.moveLeft();
+                repaint();
+            } else if(e.getKeyCode() == KeyEvent.VK_UP) { // 점프
+                hero.isJump = true;
                 repaint();
             }
         }
 
         @Override
         public void keyReleased(KeyEvent e) {
-            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                zombie1.randomMove();
+                zombie2.randomMove();
+                gameOver = hero.heroMove();
+
+                heroDead1 = zombie1.crush(hero);
+                heroDead2 = zombie2.crush(hero);
+                
+                if (gameOver) {
+                    repaint();
+                    break;
+                }
+                repaint();
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.getStackTrace();
+                    break;
+                }
+            }
         }
     }
 
